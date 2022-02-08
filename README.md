@@ -1,4 +1,4 @@
-# Running a bokeh server with Binder
+# Running myPSDexplorer on binder
 
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/swnesbitt/bokeh-myPSD/master?urlpath=/proxy/5006/bokeh-app)
 
