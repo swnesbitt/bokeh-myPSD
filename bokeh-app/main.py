@@ -145,9 +145,19 @@ for w in [Dm_slider, logNw_slider, mu_slider]:
 # Set up layouts and add to document
 inputs = column(text, Dm_slider, logNw_slider, mu_slider)
 
-curdoc().add_root(row(inputs, plot, stats, width=800))
-curdoc().title = "My PSD Explorer"
+curdoc.add_root(row(inputs, plot, stats, width=800))
+curdoc.title = "My PSD Explorer"
 
-output_file(filename="custom_filename.html", title="Static HTML file")
+curdoc.theme = Theme(json=yaml.load("""
+    attrs:
+        Figure:
+            background_fill_color: "#DDDDDD"
+            outline_line_color: white
+            toolbar_location: above
+            height: 500
+            width: 800
+        Grid:
+            grid_line_dash: [6, 4]
+            grid_line_color: white
+""", Loader=yaml.FullLoader))
 
-save(curdoc())
