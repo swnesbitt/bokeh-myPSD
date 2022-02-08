@@ -8,7 +8,7 @@ at your command prompt. Then navigate to the URL
 in your browser.
 '''
 import numpy as np
-
+import yaml
 from bokeh.io import curdoc
 from bokeh.layouts import column, row
 from bokeh.models import ColumnDataSource, Slider, TextInput, PreText, DataTable
