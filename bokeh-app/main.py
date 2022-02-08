@@ -146,10 +146,10 @@ for w in [Dm_slider, logNw_slider, mu_slider]:
 # Set up layouts and add to document
 inputs = column(text, Dm_slider, logNw_slider, mu_slider)
 
-curdoc.add_root(row(inputs, plot, stats, width=800))
-curdoc.title = "My PSD Explorer"
+curdoc().add_root(row(inputs, plot, stats, width=800))
+curdoc().title = "My PSD Explorer"
 
-curdoc.theme = Theme(json=yaml.load("""
+curdoc().theme = Theme(json=yaml.load("""
     attrs:
         Figure:
             background_fill_color: "#DDDDDD"
