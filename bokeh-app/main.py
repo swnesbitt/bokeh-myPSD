@@ -1,89 +1,153 @@
-from os.path import join, dirname
-import datetime
-
-import pandas as pd
-from scipy.signal import savgol_filter
+''' Present an interactive function explorer with slider widgets.
+Scrub the sliders to change the properties of the ``sin`` curve, or
+type into the title text box to update the title of the plot.
+Use the ``bokeh serve`` command to run the example by executing:
+    bokeh serve sliders.py
+at your command prompt. Then navigate to the URL
+    http://localhost:5006/sliders
+in your browser.
+'''
+import numpy as np
 
 from bokeh.io import curdoc
-from bokeh.layouts import row, column
-from bokeh.models import ColumnDataSource, DataRange1d, Select
-from bokeh.palettes import Blues4
-from bokeh.plotting import figure
+from bokeh.layouts import column, row
+from bokeh.models import ColumnDataSource, Slider, TextInput, PreText, DataTable
+from bokeh.plotting import figure, curdoc, output_file, save
 
-STATISTICS = ['record_min_temp', 'actual_min_temp', 'average_min_temp', 'average_max_temp', 'actual_max_temp', 'record_max_temp']
+from pytmatrix.tmatrix import Scatterer
+from pytmatrix.psd import PSDIntegrator, GammaPSD
+from pytmatrix import orientation, radar, tmatrix_aux, refractive
 
-def get_dataset(src, name, distribution):
-    df = src[src.airport == name].copy()
-    del df['airport']
-    df['date'] = pd.to_datetime(df.date)
-    # timedelta here instead of pd.DateOffset to avoid pandas bug < 0.18 (Pandas issue #11925)
-    df['left'] = df.date - datetime.timedelta(days=0.5)
-    df['right'] = df.date + datetime.timedelta(days=0.5)
-    df = df.set_index(['date'])
-    df.sort_index(inplace=True)
-    if distribution == 'Smoothed':
-        window, order = 51, 3
-        for key in STATISTICS:
-            df[key] = savgol_filter(df[key], window, order)
+import pandas as pd
+from scipy.special import gamma
 
-    return ColumnDataSource(data=df)
+# calculations
+def drop_ar(D_eq):
+    if D_eq < 0.7:
+        return 1.0;
+    elif D_eq < 1.5:
+        return 1.173 - 0.5165*D_eq + 0.4698*D_eq**2 - 0.1317*D_eq**3 - \
+            8.5e-3*D_eq**4
+    else:
+        return 1.065 - 6.25e-2*D_eq - 3.99e-3*D_eq**2 + 7.66e-4*D_eq**3 - \
+            4.095e-5*D_eq**4 
 
-def make_plot(source, title):
-    plot = figure(x_axis_type="datetime", plot_width=800, tools="", toolbar_location=None)
-    plot.title.text = title
+def get_scattering_props(Dm,logNw,mu):
+    scatterer = Scatterer(wavelength=tmatrix_aux.wl_S, m=refractive.m_w_10C[tmatrix_aux.wl_S])
+    scatterer.psd_integrator = PSDIntegrator()
+    scatterer.psd_integrator.axis_ratio_func = lambda D: 1.0/drop_ar(D)
+    scatterer.psd_integrator.D_max = 10.0
+    scatterer.psd_integrator.geometries = (tmatrix_aux.geom_horiz_back, tmatrix_aux.geom_horiz_forw)
+    scatterer.or_pdf = orientation.gaussian_pdf(20.0)
+    scatterer.orient = orientation.orient_averaged_fixed
+    scatterer.psd_integrator.init_scatter_table(scatterer)
 
-    plot.quad(top='record_max_temp', bottom='record_min_temp', left='left', right='right',
-              color=Blues4[2], source=source, legend="Record")
-    plot.quad(top='average_max_temp', bottom='average_min_temp', left='left', right='right',
-              color=Blues4[1], source=source, legend="Average")
-    plot.quad(top='actual_max_temp', bottom='actual_min_temp', left='left', right='right',
-              color=Blues4[0], alpha=0.5, line_color="black", source=source, legend="Actual")
+    D0 = (3.67 + mu)/(4 + mu) * Dm
+    Nw = 10.**logNw   
+    scatterer.psd = GammaPSD(D0=D0, Nw=Nw, mu=mu)
 
-    # fixed attributes
-    plot.xaxis.axis_label = None
-    plot.yaxis.axis_label = "Temperature (F)"
-    plot.axis.axis_label_text_font_style = "bold"
-    plot.x_range = DataRange1d(range_padding=0.0)
-    plot.grid.grid_line_alpha = 0.3
+    Zh = 10*np.log10(radar.refl(scatterer))
+    Zv = 10*np.log10(radar.refl(scatterer, False))
+    Zdr = radar.Zdr(scatterer)
+    Ldr = 10*np.log10(radar.ldr(scatterer))
+    rho_hv = radar.rho_hv(scatterer)
+    scatterer.set_geometry(tmatrix_aux.geom_horiz_forw)
+    Kdp = radar.Kdp(scatterer)
+    Ah = radar.Ai(scatterer)
 
-    return plot
 
-def update_plot(attrname, old, new):
-    city = city_select.value
-    plot.title.text = "Weather data for " + cities[city]['title']
 
-    src = get_dataset(df, cities[city]['airport'], distribution_select.value)
-    source.data.update(src.data)
+    f_u = (6/(4**4))*((4 + mu)**(mu + 4))/(gamma(mu+4))
 
-city = 'Austin'
-distribution = 'Discrete'
+    dsd_df = pd.DataFrame()
+    dsd_df['D'] = np.arange(0.1,10,0.1)
+    dsd_df['ND'] = Nw * f_u * ((dsd_df['D'] / Dm) ** mu) * np.exp(-1.*(4 + mu)*(dsd_df['D'] / Dm))
+    NT = Nw * f_u * gamma(mu + 1) * Dm / ((4 + mu)**(mu + 1))
+    LWC = (1. * np.pi * Nw * Dm**4) / (4.**4 * 1000.)
 
-cities = {
-    'Austin': {
-        'airport': 'AUS',
-        'title': 'Austin, TX',
-    },
-    'Boston': {
-        'airport': 'BOS',
-        'title': 'Boston, MA',
-    },
-    'Seattle': {
-        'airport': 'SEA',
-        'title': 'Seattle, WA',
-    }
-}
+    integ_df = pd.DataFrame({'NT':[NT], 
+                            'LWC':[LWC], 
+                            'Zh':[Zh], 
+                            'Zv':[Zv], 
+                            'Zdr': [Zdr], 
+                            'Ldr': [Ldr], 
+                            'rho_hv':[rho_hv], 
+                            'Kdp':[Kdp], 
+                            'Ah':[Ah]})
 
-city_select = Select(value=city, title='City', options=sorted(cities.keys()))
-distribution_select = Select(value=distribution, title='Distribution', options=['Discrete', 'Smoothed'])
+    return dsd_df, integ_df
 
-df = pd.read_csv(join(dirname(__file__), 'data/2015_weather.csv'))
-source = get_dataset(df, cities[city]['airport'], distribution)
-plot = make_plot(source, "Weather data for " + cities[city]['title'])
+def calc_dsd(Dm,logNw,mu):
+    f_u = (6/4**4)*((4 + mu)**(mu + 4))/(gamma(mu+4))
+    dsd_df = pd.DataFrame()
+    dsd_df['D'] = np.arange(0.1,10,0.1)
+    dsd_df['ND'] = 10**logNw * f_u * ((dsd_df['D'] / Dm) ** mu) * np.exp(-1.*(4 + mu)*(dsd_df['D'] / Dm))
+ 
+    return dsd_df
 
-city_select.on_change('value', update_plot)
-distribution_select.on_change('value', update_plot)
+def update_data(attrname, old, new):
 
-controls = column(city_select, distribution_select)
+    # Get the current slider values
+    Dm_new = Dm_slider.value
+    logNw_new = logNw_slider.value
+    mu_new = mu_slider.value
 
-curdoc().add_root(row(plot, controls))
-curdoc().title = "Weather"
+    # Generate the new curve
+    dsd_df_new, integ_df_new = get_scattering_props(Dm_new, logNw_new, mu_new)
+#    x_new = dsd_df_new['D']
+#    y_new = dsd_df_new['ND']
+#    print(y_new)
+    update_stats(integ_df_new)
+
+    source.data = dsd_df_new
+    source2.data = integ_df_new
+
+def update_stats(integ_df):
+    stats.text = str(integ_df.T)
+
+
+# Set up data
+Dm = 2.0
+logNw = 3.0
+mu = 0
+dsd_df, integ_df = get_scattering_props(Dm, logNw, mu)
+#x = dsd_df['D']
+#y = dsd_df['ND']
+
+source2 = ColumnDataSource(data=integ_df)
+
+stats = PreText(text='', width=500)
+#stats = DataTable(source=source)
+
+source = ColumnDataSource(data=dsd_df)
+
+update_stats(integ_df)
+
+# Set up plot
+plot = figure(height=400, width=400, title="Particle size distribution",
+              tools="crosshair,pan,reset,save,wheel_zoom",y_axis_type="log",
+              x_range=[0, 10], y_range=[1,1000000])
+
+plot.line('D', 'ND', source=source, line_width=3, line_alpha=0.6)
+
+
+# Set up widgets
+text = TextInput(title="title", value='my PSD')
+Dm_slider = Slider(title="Dm", value=3.0, start=0, end=6.0, step=0.5)
+logNw_slider = Slider(title="log_10 Nw", value=3, start=0.5, end=6, step=0.5)
+mu_slider = Slider(title="mu", value=0.0, start=-3.5, end=20., step=0.5)
+
+
+for w in [Dm_slider, logNw_slider, mu_slider]:
+    w.on_change('value_throttled', update_data)
+
+
+# Set up layouts and add to document
+inputs = column(text, Dm_slider, logNw_slider, mu_slider)
+
+curdoc().add_root(row(inputs, plot, stats, width=800))
+curdoc().title = "My PSD Explorer"
+
+output_file(filename="custom_filename.html", title="Static HTML file")
+
+save(curdoc())
