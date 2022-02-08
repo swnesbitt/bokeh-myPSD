@@ -13,6 +13,7 @@ from bokeh.io import curdoc
 from bokeh.layouts import column, row
 from bokeh.models import ColumnDataSource, Slider, TextInput, PreText, DataTable
 from bokeh.plotting import figure, curdoc, output_file, save
+from bokeh.themes import Theme
 
 from pytmatrix.tmatrix import Scatterer
 from pytmatrix.psd import PSDIntegrator, GammaPSD
