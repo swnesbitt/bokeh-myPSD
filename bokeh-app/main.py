@@ -157,7 +157,7 @@ source = ColumnDataSource(data=dsd_df)
 update_stats(integ_df)
 
 # Set up plot
-plot = figure(height=400, width=400, title="Particle size distribution",
+plot = figure(height=400, width=400, title="My PSD Explorer",
               tools="crosshair,pan,reset,save,wheel_zoom",y_axis_type="log",
               x_range=[0, 10], y_range=[0.1,1000000])
 
