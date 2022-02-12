@@ -66,7 +66,7 @@ def get_scattering_props(Dm=2.0,logNw=3.0,mu=0.0,wavelength='10',cant=0.0,ptype=
 
     Zh = 10*np.log10(radar.refl(scatterer))
     Zv = 10*np.log10(radar.refl(scatterer, False))
-    Zdr = radar.Zdr(scatterer)
+    Zdr = 10.*np.log10(radar.Zdr(scatterer))
     Ldr = 10*np.log10(radar.ldr(scatterer))
     rho_hv = radar.rho_hv(scatterer)
     delta = radar.delta_hv(scatterer)
