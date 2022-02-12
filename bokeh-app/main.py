@@ -161,6 +161,10 @@ plot = figure(height=400, width=400, title="My PSD Explorer",
               tools="crosshair,pan,reset,save,wheel_zoom",y_axis_type="log",
               x_range=[0, 10], y_range=[0.1,1000000])
 
+plot.xaxis.axis_label = 'Particle diameter (mm)'
+plot.yaxis.axis_label = 'Number distribution (mm-1 m-3)'
+
+
 plot.line('D', 'ND', source=source, line_width=3, line_alpha=0.6)
 
 
