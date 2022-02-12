@@ -94,7 +94,7 @@ def get_scattering_props(Dm=2.0,logNw=3.0,mu=0.0,wavelength='10',cant=0.0,ptype=
                             'rho_hv':[rho_hv], 
                             'Kdp (deg km-1)':[Kdp], 
                             'delta (deg km-1)':[delta],
-                            'Ah (dbZ/km)':[Ah],
+                            'Ah (dBZ/km)':[Ah],
                             'Adr (dB/km)':[Ah-Av]})
 
     return dsd_df, integ_df
