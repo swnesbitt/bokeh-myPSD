@@ -8,6 +8,6 @@ When people click on the Binder link, they should be directed to the running Bok
 
 ## Contributions
 
-Developed by Steve Nesbitt.
+Developed by [Steve Nesbitt](https://swnesbitt.com), Professor at the University of Illinois Urbana-Champaign.
 
-If you'd like to make this better, feel free to create a pull request!
+If you'd like to make this tool better, feel free to create a pull request!
