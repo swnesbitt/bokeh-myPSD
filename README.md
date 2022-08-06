@@ -6,7 +6,7 @@ This repository runs the myPSD bokeh app, which enables interactive exploration 
    
 When people click on the Binder link, they should be directed to the running Bokeh app.
 
-# Contributions
+## Contributions
 
 Developed by Steve Nesbitt.
 
