@@ -1,4 +1,5 @@
-# Running myPSDexplorer on binder
+# myPSD
+##A t-matrix based interactive tool for understanding weather radar polarimetric variables in rain
 
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/swnesbitt/bokeh-myPSD/master?urlpath=/proxy/5006/bokeh-app)
 
