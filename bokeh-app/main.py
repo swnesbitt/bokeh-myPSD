@@ -48,8 +48,6 @@ def get_scattering_props(Dm=2.0,logNw=3.0,mu=0.0,wavelength='10',cant=0.0,ptype=
         scatterer = Scatterer(wavelength=tmatrix_aux.wl_X, m=refractive.m_w_10C[tmatrix_aux.wl_X])
     elif ((wavelength == '10') & (ptype == 'rain')):
         scatterer = Scatterer(wavelength=tmatrix_aux.wl_S, m=refractive.m_w_10C[tmatrix_aux.wl_S])
-    elif ((wavelength == '10') & (ptype == 'snow')):
-        scatterer = Scatterer(wavelength=tmatrix_aux.wl_S, m=refractive.m_w_10C[tmatrix_aux.wl_S])
     scatterer.psd_integrator = PSDIntegrator()
     if ptype == 'rain':
         scatterer.psd_integrator.axis_ratio_func = lambda D: 1.0/drop_ar(D)
