@@ -1,8 +1,8 @@
 dependencies:
-  - python=3.10
+  - python
   - bokeh
   - pandas
-  - numpy=1.22
+  - numpy
   - scipy
   - pytmatrix
   - pip
