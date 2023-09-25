@@ -2,7 +2,7 @@ dependencies:
   - python
   - bokeh
   - pandas
-  - numpy
+  - numpy=1.22
   - scipy
   - pytmatrix
   - pip
