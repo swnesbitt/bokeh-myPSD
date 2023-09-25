@@ -1,4 +1,5 @@
 dependencies:
+  - python<3.10
   - bokeh
   - pandas
   - numpy<1.22
