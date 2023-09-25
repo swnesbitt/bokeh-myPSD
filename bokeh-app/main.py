@@ -192,13 +192,13 @@ curdoc().add_root(row(inputs, plot, stats, width=800))
 curdoc().title = "My PSD Explorer"
 curdoc().theme = Theme(json=yaml.load("""
     attrs:
-        Figure:
+        figure:
             background_fill_color: "#DDDDDD"
             outline_line_color: white
             toolbar_location: above
             height: 500
             width: 800
-        Grid:
+        grid:
             grid_line_dash: [6, 4]
             grid_line_color: white
 """, Loader=yaml.FullLoader))
