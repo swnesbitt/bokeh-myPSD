@@ -1,8 +1,7 @@
 dependencies:
-  - python
   - bokeh
   - pandas
-  - numpy
-  - scipy
+  - numpy<1.22
+  - scipy<1.10
   - pytmatrix
   - jupyter-server-proxy
